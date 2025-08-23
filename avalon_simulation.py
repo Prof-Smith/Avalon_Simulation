@@ -1,4 +1,4 @@
-
+pip install numpy-financial
 try:
     import numpy_financial as npf
 except ImportError:
