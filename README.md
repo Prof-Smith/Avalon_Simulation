@@ -13,6 +13,7 @@ This Streamlit app allows users to explore key financial modeling concepts inter
 ## Installation
 ```bash
 pip install -r requirements.txt
+pip install numpy-financial
 ```
 
 ## Running the App
