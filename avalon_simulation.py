@@ -1,6 +1,4 @@
 
-pip install scipy
-
 try:
     import numpy_financial as npf
 except ImportError:
@@ -13,17 +11,22 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-
 def xnpv(rate, cash_flows, dates):
     return sum(cf / (1 + rate) ** ((date - dates[0]).days / 365) for cf, date in zip(cash_flows, dates))
 
-def xirr(cash_flows, dates):
-    from scipy.optimize import newton
-    try:
-        result = newton(lambda r: xnpv(r, cash_flows, dates), 0.1)
-        return result * 100
-    except Exception as e:
-        return f"Calculation Error: {str(e)}"
+def xirr(cash_flows, dates, tol=1e-6, max_iter=1000):
+    low = -0.9999  # IRR can't be less than -100%
+    high = 10.0    # Arbitrary upper bound
+    for _ in range(max_iter):
+        mid = (low + high) / 2
+        npv = xnpv(mid, cash_flows, dates)
+        if abs(npv) < tol:
+            return mid * 100  # Return as percentage
+        elif npv > 0:
+            low = mid
+        else:
+            high = mid
+    return "Calculation Error: IRR did not converge"
 
 st.set_page_config(page_title="Avalon Tech Ventures - Financial Simulation", layout="wide")
 
@@ -116,7 +119,7 @@ if st.button("Calculate XNPV and XIRR"):
         if len(cash_flows) != len(dates):
             raise ValueError("Number of cash flows and dates must match.")
         xirr_value = xirr(cash_flows, dates)
-        xirr = f"{xirr_value:.2f}%" if not isinstance(xirr_value, str) else xirr_value
+        xirr = f"{xirr_value:.2f}%" if isinstance(xirr_value, float) else xirr_value
     except Exception as e:
         xirr = f"Calculation Error: {str(e)}"
 
