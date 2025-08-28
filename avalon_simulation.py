@@ -15,13 +15,13 @@ def xnpv(rate, cash_flows, dates):
     return sum(cf / (1 + rate) ** ((date - dates[0]).days / 365) for cf, date in zip(cash_flows, dates))
 
 def xirr_calc(cash_flows, dates, tol=1e-6, max_iter=1000):
-    low = -0.9999
-    high = 10.0
+    low = -0.9999  # IRR can't be less than -100%
+    high = 10.0    # Arbitrary upper bound
     for _ in range(max_iter):
         mid = (low + high) / 2
         npv = xnpv(mid, cash_flows, dates)
         if abs(npv) < tol:
-            return mid * 100
+            return mid * 100  # Return as percentage
         elif npv > 0:
             low = mid
         else:
@@ -109,19 +109,22 @@ cash_input = st.text_input("Enter corresponding cash flows separated by commas",
 discount_rate_xnpv = st.number_input("Discount Rate for XNPV (%)", value=10.0, key="xnpv_rate")
 
 if st.button("Calculate XNPV and XIRR"):
-    dates = [datetime.strptime(d.strip(), "%Y-%m-%d") for d in dates_input.split(",")]
-    cash_flows = [float(c.strip()) for c in cash_input.split(",")]
-    df = pd.DataFrame({"Date": dates, "Cash Flow": cash_flows})
-    df["Days"] = (df["Date"] - df["Date"].iloc[0]).dt.days
-    xnpv = sum(cf / (1 + discount_rate_xnpv / 100) ** (days / 365) for cf, days in zip(df["Cash Flow"], df["Days"]))
-
     try:
+        dates = [datetime.strptime(d.strip(), "%Y-%m-%d") for d in dates_input.split(",")]
+        cash_flows = [float(c.strip()) for c in cash_input.split(",")]
+
         if len(cash_flows) != len(dates):
             raise ValueError("Number of cash flows and dates must match.")
+
+        df = pd.DataFrame({"Date": dates, "Cash Flow": cash_flows})
+        df["Days"] = (df["Date"] - df["Date"].iloc[0]).dt.days
+
+        xnpv_value = sum(cf / (1 + discount_rate_xnpv / 100) ** (days / 365) for cf, days in zip(df["Cash Flow"], df["Days"]))
         xirr_result = xirr_calc(cash_flows, dates)
         xirr_display = f"{xirr_result:.2f}%" if isinstance(xirr_result, float) else xirr_result
-    except Exception as e:
-        xirr_display = f"Calculation Error: {str(e)}"
 
-    st.write(f"**XNPV:** ${xnpv:.2f}")
-    st.write(f"**XIRR:** {xirr_display}")
+        st.write(f"**XNPV:** ${xnpv_value:.2f}")
+        st.write(f"**XIRR:** {xirr_display}")
+
+    except Exception as e:
+        st.write(f"**Calculation Error:** {str(e)}")
