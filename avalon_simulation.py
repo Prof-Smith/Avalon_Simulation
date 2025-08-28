@@ -103,10 +103,15 @@ if st.button("Calculate XNPV and XIRR"):
     cash_flows = [float(c.strip()) for c in cash_input.split(",")]
     df = pd.DataFrame({"Date": dates, "Cash Flow": cash_flows})
     df["Days"] = (df["Date"] - df["Date"].iloc[0]).dt.days
-    xnpv = sum(cf / (1 + discount_rate_xnpv/100)**(days/365) for cf, days in zip(df["Cash Flow"], df["Days"]))
+    xnpv = sum(cf / (1 + discount_rate_xnpv / 100) ** (days / 365) for cf, days in zip(df["Cash Flow"], df["Days"]))
+
     try:
-        xirr = xirr(cash_flows, dates) * 100
-    except:
-        xirr = "Calculation Error"
+        if len(cash_flows) != len(dates):
+            raise ValueError("Number of cash flows and dates must match.")
+        xirr_value = xirr(cash_flows, dates)
+        xirr = f"{xirr_value:.2f}%" if not isinstance(xirr_value, str) else xirr_value
+    except Exception as e:
+        xirr = f"Calculation Error: {str(e)}"
+
     st.write(f"**XNPV:** ${xnpv:.2f}")
-    st.write(f"**XIRR:** {xirr if isinstance(xirr, str) else f'{xirr:.2f}%'}")
+    st.write(f"**XIRR:** {xirr}")
