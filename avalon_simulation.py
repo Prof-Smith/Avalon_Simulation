@@ -14,14 +14,14 @@ from datetime import datetime
 def xnpv(rate, cash_flows, dates):
     return sum(cf / (1 + rate) ** ((date - dates[0]).days / 365) for cf, date in zip(cash_flows, dates))
 
-def xirr(cash_flows, dates, tol=1e-6, max_iter=1000):
-    low = -0.9999  # IRR can't be less than -100%
-    high = 10.0    # Arbitrary upper bound
+def xirr_calc(cash_flows, dates, tol=1e-6, max_iter=1000):
+    low = -0.9999
+    high = 10.0
     for _ in range(max_iter):
         mid = (low + high) / 2
         npv = xnpv(mid, cash_flows, dates)
         if abs(npv) < tol:
-            return mid * 100  # Return as percentage
+            return mid * 100
         elif npv > 0:
             low = mid
         else:
@@ -118,10 +118,10 @@ if st.button("Calculate XNPV and XIRR"):
     try:
         if len(cash_flows) != len(dates):
             raise ValueError("Number of cash flows and dates must match.")
-        xirr_value = xirr(cash_flows, dates)
-        xirr = f"{xirr_value:.2f}%" if isinstance(xirr_value, float) else xirr_value
+        xirr_result = xirr_calc(cash_flows, dates)
+        xirr_display = f"{xirr_result:.2f}%" if isinstance(xirr_result, float) else xirr_result
     except Exception as e:
-        xirr = f"Calculation Error: {str(e)}"
+        xirr_display = f"Calculation Error: {str(e)}"
 
     st.write(f"**XNPV:** ${xnpv:.2f}")
-    st.write(f"**XIRR:** {xirr}")
+    st.write(f"**XIRR:** {xirr_display}")
