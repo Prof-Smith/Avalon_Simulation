@@ -16,7 +16,12 @@ def xnpv(rate, cash_flows, dates):
     return sum(cf / (1 + rate) ** ((date - dates[0]).days / 365) for cf, date in zip(cash_flows, dates))
 
 def xirr(cash_flows, dates):
-    return newton(lambda r: xnpv(r, cash_flows, dates), 0.1)
+    from scipy.optimize import newton
+    try:
+        result = newton(lambda r: xnpv(r, cash_flows, dates), 0.1)
+        return result * 100
+    except Exception as e:
+        return f"Calculation Error: {str(e)}"
 
 st.set_page_config(page_title="Avalon Tech Ventures - Financial Simulation", layout="wide")
 
