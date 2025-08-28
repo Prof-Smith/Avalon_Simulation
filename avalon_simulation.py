@@ -98,7 +98,7 @@ if st.button("Calculate XNPV and XIRR"):
     df["Days"] = (df["Date"] - df["Date"].iloc[0]).dt.days
     xnpv = sum(cf / (1 + discount_rate_xnpv/100)**(days/365) for cf, days in zip(df["Cash Flow"], df["Days"]))
     try:
-        xirr = xirr(cash_flows, dates) * 100
+        xirr = npf.irr(cash_flows) * 100
     except:
         xirr = "Calculation Error"
     st.write(f"**XNPV:** ${xnpv:.2f}")
